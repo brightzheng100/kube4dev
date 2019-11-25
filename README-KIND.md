@@ -27,12 +27,12 @@ $ kind create cluster --name my-cluster --config kind/kind-config-basic.yaml
 > 2. Above process will quickly provision a Kubernetes cluster with below components:
 >     - 1 x Master "node"
 >     - 3 x Worker "nodes"
-> 3. See **[`Advanced Topics`](advanced-topics)** for how to enable some interesting features
+> 3. See **[`Advanced Topics`](#advanced-topics)** for how to enable some interesting features
 
 
 ## Usage
 
-```
+```sh
 $ kubectl config get-contexts
 CURRENT   NAME              CLUSTER           AUTHINFO          NAMESPACE
 *         kind-my-cluster   kind-my-cluster   kind-my-cluster
@@ -64,7 +64,7 @@ pod/nginx-554b9c67f9-mxdjx   1/1     Running   0          21s
 
 ## Clean Up
 
-```
+```sh
 $ kind delete cluster --name my-cluster
 ```
 
@@ -89,7 +89,7 @@ You may consider some scenarios like:
 
 Basically, each node is a Docker container, so accessing nodes is by `docker exec` command:
 
-```
+```sh
 $ kind get nodes --name my-cluster
 my-cluster-control-plane
 my-cluster-worker3
@@ -214,8 +214,8 @@ $ kubectl edit service/traefik-ingress-service -n kube-system
 
 Make sure we update `traefik`'s service:
 
-```yaml
-$ cat <<EOF | kubectl apply -n kube-system -f -
+```sh
+$ kubectl apply -n kube-system -f - <<EOF
 kind: Service
 apiVersion: v1
 metadata:
@@ -242,7 +242,7 @@ Test it out:
 ```sh
 $ kubectl create deployment web --image=nginx
 $ kubectl expose deployment web --port=80
-$ cat <<EOF | kubectl apply -f -
+$ kubectl apply -f - <<EOF
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -327,7 +327,6 @@ Open browser and navigate to: http://localhost:8080
 ### Enable Kubernetes Dashboard
 
 ```sh
-$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
 $ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta6/aio/deploy/recommended.yaml
 $ kubectl proxy
 ```
@@ -416,4 +415,4 @@ kubeadmConfigPatches:
 But it won't work in `kind` (and maybe the whole `kubeadm`-based bootstrapping approach?).
 For now, it _may_ work only to enable it **after** the bootstrapping is done, with proper PSP and RBAC permissions granted.
 
-Ref: https://github.com/kubernetes-sigs/kind/issues/973
+> Ref: https://github.com/kubernetes-sigs/kind/issues/973
