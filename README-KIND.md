@@ -6,7 +6,7 @@
 - Docker (Desktop) is installed
 
 
-## Installation
+## Provision Kubernetes Cluster
 
 The simple goal: to provision a Kubernetes cluster with **1 Master** + **3 Workers**
 
