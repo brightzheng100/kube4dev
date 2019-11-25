@@ -1,0 +1,49 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+# patch the generated kubeadm config with some extra settings
+kubeadmConfigPatches:
+- |
+  apiVersion: kubeadm.k8s.io/v1beta2
+  kind: ClusterConfiguration
+  metadata:
+    name: config
+  apiServer:
+    extraArgs:
+      enable-admission-plugins: NodeRestriction
+      "feature-gates": "DynamicAuditing=true"   # way to enable desired features
+  scheduler:
+    extraArgs:
+      "feature-gates": "DynamicAuditing=true"   # way to enable desired features
+  controllerManager:
+    extraArgs:
+      "feature-gates": "DynamicAuditing=true"   # way to enable desired features
+- |
+  apiVersion: kubeadm.k8s.io/v1beta2
+  kind: InitConfiguration
+  metadata:
+    name: config
+  nodeRegistration:
+    kubeletExtraArgs:
+      "feature-gates": "DynamicAuditing=true"   # way to enable desired features
+nodes:
+# The control plane node config
+- role: control-plane
+  # this is to expose extra ports for NodePort
+  # see #https://github.com/kubernetes-sigs/kind/pull/637, https://github.com/kubernetes-sigs/kind/issues/99
+  extraPortMappings:
+  - containerPort: 30100
+    hostPort: 30100
+  - containerPort: 30101
+    hostPort: 30101
+  - containerPort: 30102
+    hostPort: 30102
+# The three workers
+- role: worker
+- role: worker
+- role: worker
+# To disable CNI so we can add our choice of CNI, e.g. weave-net, later
+networking:
+  disableDefaultCNI: true       # disable kindnet
+  #podSubnet: 192.168.0.0/16    # set to Calico's default subnet
+  podSubnet: 10.32.0.0/12       # set to WeaveNet's default subnet
+  
