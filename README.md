@@ -20,14 +20,19 @@ In short, the Kubernetes cluster provisioned:
 ## The Ways
 
 The potential ways might keep growing/evolving along the days.
+
 But as of now, below are what I've tried and considered "good".
 
 | Ranking | Approach | Docs |
 | :-----: | -------- | -------- |
-| 1       | Kubernetes IN Docker, aka [kind](https://github.com/kubernetes-sigs/kind) | [Here](README-KIND.md) |
-| 2       | Vagrant + VirtualBox | [Here](README-VAGRANT.md) |
+| 1       | Kubernetes in Docker, aka [kind](https://github.com/kubernetes-sigs/kind) | [Here in README-KIND.md](README-KIND.md) |
+| 2       | Vagrant + VirtualBox | [Here in README-VAGRANT.md](README-VAGRANT.md) |
 | 3       | K3s + K3d | COMMING SOON |
 
-> Note: all the experiments are on Mac, but working in a Linux env should be very similar.
+If you like the OKD/OpenShift approach, instead of the upstream K8s, you may try these:
+- OKD in Docker, [here in README-OKD-IN-DOCKER.md](README-OKD-IN-DOCKER.md)
+- Or [MiniShift](https://www.okd.io/minishift/), which you can find tutorial everywhere.
+
+> Note: all the experiments were on Mac, but working in a Linux env should be very similar.
 
 Enjoy!
