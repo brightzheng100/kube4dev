@@ -390,6 +390,17 @@ Then you will have a `kind`-powered Kubernetes cluster, with:
 - 3 x Worker Node
 - 1 x local Docker Registry, which is accessible from Kubernetes cluster, with prefix of `registry:5000/`. For example, `registry:5000/busybox`
 
+> Notes: 
+1. You may customize the cluster creation script by exporting below variables to replace the default:
+    - KIND_CLUSTER_NAME, defaults to "my-cluster"
+    - KIND_CLUSTER_VERSION, defaults to "kindest/node:latest"
+    - REGISTRY_CONTAINER_NAME, defaults to "kind-registry"
+    - REGISTRY_CONTAINER_PORT, defaults to "5000"
+2. This way of spinning up Registry has one known issue: the process within container can access it only when configured like this:
+```yaml
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+```
 
 ## Known Issues
 
