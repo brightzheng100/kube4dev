@@ -9,6 +9,8 @@ KIND_CLUSTER_VERSION="${KIND_CLUSTER_VERSION:-kindest/node:latest}"
 REGISTRY_CONTAINER_NAME="${REGISTRY_CONTAINER_NAME:-kind-registry}"
 # the desired registry container port
 REGISTRY_CONTAINER_PORT="${REGISTRY_CONTAINER_PORT:-5000}"
+# kind is configurable
+KIND_CONFIG="${KIND_CONFIG:-kind-config-basic.yaml}"
 
 # create a docker container as the Docker Registry
 if [ "$(docker inspect -f '{{.State.Running}}' "${REGISTRY_CONTAINER_NAME}")" != 'true' ]; then
@@ -16,7 +18,7 @@ if [ "$(docker inspect -f '{{.State.Running}}' "${REGISTRY_CONTAINER_NAME}")" !=
 fi
 
 # create a cluster with the local registry enabled in containerd
-cat kind-config-basic.yaml - <<EOF | kind create cluster --name ${KIND_CLUSTER_NAME} --image ${KIND_CLUSTER_VERSION} --config=-
+cat "${KIND_CONFIG}" - <<EOF | kind create cluster --name ${KIND_CLUSTER_NAME} --image ${KIND_CLUSTER_VERSION} --config=-
 containerdConfigPatches: 
 - |-
   [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry:${REGISTRY_CONTAINER_PORT}"]
