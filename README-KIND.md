@@ -11,10 +11,12 @@
 The simple goal: to provision a Kubernetes cluster with **1 Master** + **3 Workers**
 
 ```sh
-$ curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/v0.6.0/kind-$(uname)-amd64
-$ chmod +x ./kind && mv ./kind /usr/local/bin/
+# export the desired version
+$ export KIND_VERSION=v0.9.0
+$ curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-$(uname)-amd64
+$ chmod +x ./kind && sudo mv ./kind /usr/local/bin/
 $ kind version
-kind v0.6.0 go1.13.4 darwin/amd64
+kind v0.9.0 go1.15.2 darwin/amd64
 
 $ git clone https://github.com/brightzheng100/kube4dev.git
 $ cd kube4dev
@@ -39,17 +41,18 @@ CURRENT   NAME              CLUSTER           AUTHINFO          NAMESPACE
 
 $ kubectl get nodes
 NAME                       STATUS   ROLES    AGE   VERSION
-my-cluster-control-plane   Ready    master   80s   v1.16.3
-my-cluster-worker          Ready    <none>   42s   v1.16.3
-my-cluster-worker2         Ready    <none>   42s   v1.16.3
-my-cluster-worker3         Ready    <none>   42s   v1.16.3
+my-cluster-control-plane   Ready    master   63s   v1.19.1
+my-cluster-worker          Ready    <none>   32s   v1.19.1
+my-cluster-worker2         Ready    <none>   32s   v1.19.1
+my-cluster-worker3         Ready    <none>   32s   v1.19.1
 
 $ kubectl get ns
-NAME              STATUS   AGE
-default           Active   2m30s
-kube-node-lease   Active   2m33s
-kube-public       Active   2m33s
-kube-system       Active   2m33s
+NAME                 STATUS   AGE
+default              Active   73s
+kube-node-lease      Active   75s
+kube-public          Active   75s
+kube-system          Active   75s
+local-path-storage   Active   69s
 
 $ kubectl create deployment nginx --image=nginx
 deployment.apps/nginx created
@@ -81,6 +84,8 @@ You may consider some scenarios like:
 - [Enable metrics](#enable-metrics), e.g. by `metrics-server`
 - [Enable Instant Monitoring](#enable-instant-monitoring), e.g. by tools like `kube-ops-view`
 - [Enable Kubernetes Dashboard](#enable-kubernetes-dashboard)
+- [Enable Routing to Services](#enable_routing_to_services)
+- [Enable Loadbalancer support by MetalLB](#enable_loadbalancer_support_by_metallb)
 - [Enable non-GA features](#enable-non-ga-features)
 - [Spin up local Docker Registry](#spin-up-local-docker-registry) along with `kind create cluster`
 - Maybe more
@@ -97,11 +102,11 @@ my-cluster-worker2
 my-cluster-worker
 
 $ docker ps
-CONTAINER ID        IMAGE                              COMMAND                  CREATED             STATUS              PORTS                       NAMES
-927788d985f5        kindest/node:v1.16.3               "/usr/local/bin/entr…"   10 minutes ago      Up 10 minutes       127.0.0.1:62221->6443/tcp   my-cluster-control-plane
-1cef422cfb40        kindest/node:v1.16.3               "/usr/local/bin/entr…"   10 minutes ago      Up 10 minutes                                   my-cluster-worker3
-3a006f6e2277        kindest/node:v1.16.3               "/usr/local/bin/entr…"   10 minutes ago      Up 10 minutes                                   my-cluster-worker
-78b1de089fa4        kindest/node:v1.16.3               "/usr/local/bin/entr…"   10 minutes ago      Up 10 minutes                                   my-cluster-worker2
+CONTAINER ID   IMAGE                  COMMAND                  CREATED         STATUS         PORTS                       NAMES
+8c1ae11ba5bb   kindest/node:v1.19.1   "/usr/local/bin/entr…"   3 minutes ago   Up 2 minutes                               my-cluster-worker3
+35ae323d09f1   kindest/node:v1.19.1   "/usr/local/bin/entr…"   3 minutes ago   Up 2 minutes                               my-cluster-worker
+745fe40e6639   kindest/node:v1.19.1   "/usr/local/bin/entr…"   3 minutes ago   Up 2 minutes   127.0.0.1:60091->6443/tcp   my-cluster-control-plane
+ecb40f33f3d3   kindest/node:v1.19.1   "/usr/local/bin/entr…"   3 minutes ago   Up 2 minutes                               my-cluster-worker2
 
 $ docker exec -it my-cluster-control-plane bash
 root@my-cluster-control-plane:/# hostname
@@ -110,24 +115,24 @@ root@my-cluster-control-plane:/# ls /etc/kubernetes/manifests/
 etcd.yaml  kube-apiserver.yaml  kube-controller-manager.yaml  kube-scheduler.yaml
 root@my-cluster-control-plane:/# systemctl status kubelet.service
 ● kubelet.service - kubelet: The Kubernetes Node Agent
-   Loaded: loaded (/kind/systemd/kubelet.service; enabled; vendor preset: enabled)
-  Drop-In: /etc/systemd/system/kubelet.service.d
-           └─10-kubeadm.conf
-   Active: active (running) since Sat 2019-11-16 13:58:07 UTC; 28min ago
-     Docs: http://kubernetes.io/docs/
- Main PID: 233 (kubelet)
-    Tasks: 27 (limit: 2359)
-   Memory: 57.3M
+     Loaded: loaded (/etc/systemd/system/kubelet.service; enabled; vendor preset: enabled)
+    Drop-In: /etc/systemd/system/kubelet.service.d
+             └─10-kubeadm.conf
+     Active: active (running) (thawing) since Tue 2020-12-22 10:11:48 UTC; 2min 56s ago
+       Docs: http://kubernetes.io/docs/
+   Main PID: 687 (kubelet)
+      Tasks: 18 (limit: 6977)
+     Memory: 46.7M
    ...
 ```
 
 > Note: 
-> 1. Frankly, after `docker exec` into the "node", you really can't differentiate whether you're in a real VM or a Docker container -- the components are exactly the same as what I have by using `kubeadm`;
-> 2. You may check out [this repo](https://github.com/brightzheng100/kubernetes-the-kubeadm-way) to see how to provision a **real and full-fledged** `kubeadm`-based cluster on GCP.
+> 1. Frankly, after `docker exec` into the "node", you really can't differentiate whether you're in a real VM or a Docker container -- the components are exactly the same as what I have provisioned by using `kubeadm` on VMs;
+> 2. You may check out [this repo](https://github.com/brightzheng100/kubernetes-the-kubeadm-way) to see how to provision a **real and fully-fledged** `kubeadm`-based cluster on GCP.
 
 ### Use Desired CNI
 
-You may use other CNI like `calico`, or `weave-net` instead of default `kindnet`.
+You may use other CNI like `Calico`, or `WeaveNet` instead of the default `kindnet`.
 
 Firstly, we need to disable CNI by adding below section in the kind config file:
 
@@ -141,18 +146,18 @@ networking:
   podSubnet: 10.32.0.0/12     # set to WeaveNet's default subnet
 ```
 
-> Note: do check out your desired CNI to learn what `podSubnet` is required to set
+> Note: do check out your desired CNI to learn what `podSubnet` might be preferred / required to set
 
 I already provide a [`kind-cofig-advanced.yaml`](kind/kind-cofig-advanced.yaml) which would help you provision a highly customized Kubernetes cluster with default CNI disabled.
 
 To provision such a cluster, do this:
 
-```
+```sh
 $ kind create cluster --name my-cluster --config kind/kind-config-advanced.yaml
 ```
 
 Lastly, you can create your desired overlay network.
-Let's take `weave-net` as an example:
+Let's take `WeaveNet` as an example:
 
 ```sh
 $ kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
@@ -171,7 +176,7 @@ Done!
 By default, the Docker container-based nodes expose only one port for Kubernetes API only.
 To have `NodePort` support, we need to expose extra ports:
 
-```
+```yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 ...
@@ -212,7 +217,7 @@ $ kubectl apply -f https://raw.githubusercontent.com/containous/traefik/v1.7/exa
 $ kubectl edit service/traefik-ingress-service -n kube-system
 ```
 
-Make sure we update `traefik`'s service:
+Make sure we update `traefik`'s service, like this:
 
 ```sh
 $ kubectl apply -n kube-system -f - <<EOF
@@ -327,7 +332,7 @@ Open browser and navigate to: http://localhost:8080
 ### Enable Kubernetes Dashboard
 
 ```sh
-$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta6/aio/deploy/recommended.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
 $ kubectl proxy
 ```
 
@@ -341,7 +346,7 @@ metadata:
   name: admin-user
   namespace: kubernetes-dashboard
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: admin-user
@@ -363,6 +368,88 @@ Now access Dashboard:
 
 ```sh
 $ open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+```
+
+### Enable Routing to Services
+
+Sometimes what we need is just a quick routing to a specific service without a need of Ingress or Loadbalancer.
+
+Other than ad-hoc proxying by using `kubectl port-forward`, we can use `socat` to proxy the route to it.
+
+```sh
+# Assuming we have nginx deployed, in default namespace
+$ kubectl create deployment nginx --image=nginx
+
+# We can then expose it as service, with a NodePort which can't be accessible in kind
+$ kubectl expose deployment nginx --type=NodePort --port=80
+$ SVC_PORT="$(kubectl get svc/nginx -o json | jq '.spec.ports[0].nodePort')"
+
+# Create this proxy container
+$ CLUSTER_NAME=my-cluster   # the cluster name, which is `kind` by default
+$ docker run -d --restart always \
+    --name kind-proxy-${SVC_PORT} \
+    --publish 127.0.0.1:${SVC_PORT}:${SVC_PORT} \
+    --link ${CLUSTER_NAME}-control-plane:target \
+    --network kind \
+    alpine/socat -dd \
+    tcp-listen:${SVC_PORT},fork,reuseaddr tcp-connect:target:${SVC_PORT}
+  
+# Now we can access it directly
+$ curl -s http://127.0.0.1:$SVC_PORT | grep title
+<title>Welcome to nginx!</title>
+```
+
+### Enable Loadbalancer support by MetalLB
+
+Loadbalancer support is important in Kubernetes in some cases and [MetalLB](https://metallb.universe.tf/) can help.
+
+Unfortunately, `type: LoadBalancer` can't work well in `kind` in MacOS due to how Docker Desktop is built os MacOS.
+
+**So this approach can work in Linux only (not sure about Windows), for now.**
+
+```sh
+# Retrieve the Docker bridge subnet named `kind`, which is used by kind
+DOCKER_KIND_SUBNET=$(docker network inspect kind | jq -r '.[0].IPAM.Config[0].Subnet')
+
+# Use tools like ipcalc or manually pick a small /29 range of IPs for it
+# http://jodies.de/ipcalc-archive/ipcalc-0.41/ipcalc
+# For example, DOCKER_KIND_SUBNET=172.19.0.0/16, we can pick DOCKER_IP_RANGE=172.19.0.8/29
+DOCKER_IP_RANGE=$(ipcalc -s 6 ${DOCKER_KIND_SUBNET}  | grep 29 | tail -n 1)
+
+# Install MetalLB
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+      - $DOCKER_IP_RANGE   
+EOF
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml
+kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+```
+
+To test it:
+
+```sh
+$ kubectl create deployment nginx --image=nginx
+$ kubectl expose deployment nginx --name=nginx --port=80 --target-port=80 --type=LoadBalancer
+
+$ kubectl get svc
+NAME         TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP      10.96.0.1      <none>        443/TCP        26m
+nginx        LoadBalancer   10.96.25.182   172.19.0.8    80:30565/TCP   5s
+
+$ LB_IP=$( kubectl get svc nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}' )
+$ curl -s $LB_IP | grep title
+<title>Welcome to nginx!</title>
 ```
 
 ### Enable Non-GA Features
