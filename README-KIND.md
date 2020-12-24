@@ -408,13 +408,9 @@ Unfortunately, `type: LoadBalancer` can't work well in `kind` in MacOS due to ho
 **So this approach can work in Linux only (not sure about Windows), for now.**
 
 ```sh
-# Retrieve the Docker bridge subnet named `kind`, which is used by kind
-DOCKER_KIND_SUBNET=$(docker network inspect kind | jq -r '.[0].IPAM.Config[0].Subnet')
-
-# Use tools like ipcalc or manually pick a small /29 range of IPs for it
-# http://jodies.de/ipcalc-archive/ipcalc-0.41/ipcalc
-# For example, DOCKER_KIND_SUBNET=172.19.0.0/16, we can pick DOCKER_IP_RANGE=172.19.0.8/29
-DOCKER_IP_RANGE=$(ipcalc -s 6 ${DOCKER_KIND_SUBNET}  | grep 29 | tail -n 1)
+# Retrieve the Docker bridge subnet named `kind`, which is used by kind, e.g. 172.18.0.0/16
+# Then get the first two sections only, like 172.18
+DOCKER_KIND_SUBNET=$(docker network inspect kind -f "{{(index .IPAM.Config 0).Subnet}}" | cut -d '.' -f1,2)
 
 # Install MetalLB
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml
@@ -430,7 +426,7 @@ data:
     - name: default
       protocol: layer2
       addresses:
-      - $DOCKER_IP_RANGE   
+      - $DOCKER_KIND_SUBNET.255.1-$DOCKER_KIND_SUBNET.255.250
 EOF
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml
 kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
@@ -443,9 +439,9 @@ $ kubectl create deployment nginx --image=nginx
 $ kubectl expose deployment nginx --name=nginx --port=80 --target-port=80 --type=LoadBalancer
 
 $ kubectl get svc
-NAME         TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
-kubernetes   ClusterIP      10.96.0.1      <none>        443/TCP        26m
-nginx        LoadBalancer   10.96.25.182   172.19.0.8    80:30565/TCP   5s
+NAME         TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
+kubernetes   ClusterIP      10.96.0.1      <none>          443/TCP        26m
+nginx        LoadBalancer   10.96.25.182   172.18.255.1    80:30565/TCP   5s
 
 $ LB_IP=$( kubectl get svc nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}' )
 $ curl -s $LB_IP | grep title
