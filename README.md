@@ -30,7 +30,7 @@ But as of now, below are what I've tried and considered "great".
 | 3       | Vagrant + VirtualBox | Refer to [README-VAGRANT.md](README-VAGRANT.md) |
 
 If you like the OKD/OpenShift approach, instead of the upstream K8s, you may try these:
-- OKD in Docker, efer to [README-OKD-IN-DOCKER.md](README-OKD-IN-DOCKER.md)
+- OKD in Docker, refer to [README-OKD-IN-DOCKER.md](README-OKD-IN-DOCKER.md)
 - Or [MiniShift](https://www.okd.io/minishift/), which you can find tutorial everywhere.
 
 > Note: all the experiments were on Mac, but working in a Linux env should be very similar.
