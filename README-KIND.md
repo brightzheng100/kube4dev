@@ -1,9 +1,34 @@
 
 # kind - Kubernetes in Docker
 
+As per the docs [here](https://kind.sigs.k8s.io/):
+`kind` is a tool for running local Kubernetes clusters using Docker container "nodes".
+`kind` was primarily designed for testing Kubernetes itself, but may be used for local development or CI.
+
+So it's the "official" Kubernetes testing tool, and happens to be quite handy for Kubernetes developers/users too.
+
+Compared to `k3s` cluster powered by `k3d`, as detailed [here](README-K3D-K3S.md), `kind`'s cluster is heavier but the binaries are 100% built from official repo.
+
 ## Prerequisites
 
 - Docker (Desktop) is installed
+
+
+## Install kind
+
+```sh
+# export the desired version
+$ export KIND_VERSION=v0.11.1
+$ curl -Lo ./kind "https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-$(uname)-amd64"
+$ chmod +x ./kind && sudo mv ./kind /usr/local/bin/
+```
+
+Let's verify:
+
+```sh
+$ kind version
+kind v0.11.1 go1.16.4 darwin/amd64
+```
 
 
 ## Provision Kubernetes Cluster
@@ -11,16 +36,7 @@
 The simple goal is to provision a Kubernetes cluster with **1 Master** + **3 Workers**
 
 ```sh
-# export the desired version
-$ export KIND_VERSION=v0.9.0
-$ curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-$(uname)-amd64
-$ chmod +x ./kind && sudo mv ./kind /usr/local/bin/
-$ kind version
-kind v0.9.0 go1.15.2 darwin/amd64
-
-$ git clone https://github.com/brightzheng100/kube4dev.git
-$ cd kube4dev
-
+$ git clone https://github.com/brightzheng100/kube4dev.git && cd kube4dev
 $ kind create cluster --name my-cluster --config kind/kind-config-basic.yaml
 ```
 
@@ -32,7 +48,7 @@ $ kind create cluster --name my-cluster --config kind/kind-config-basic.yaml
 > 3. See **[`Advanced Topics`](#advanced-topics)** for how to enable some interesting features
 
 
-## Usage
+## Verify
 
 ```sh
 $ kubectl config get-contexts
@@ -40,11 +56,11 @@ CURRENT   NAME              CLUSTER           AUTHINFO          NAMESPACE
 *         kind-my-cluster   kind-my-cluster   kind-my-cluster
 
 $ kubectl get nodes
-NAME                       STATUS   ROLES    AGE   VERSION
-my-cluster-control-plane   Ready    master   63s   v1.19.1
-my-cluster-worker          Ready    <none>   32s   v1.19.1
-my-cluster-worker2         Ready    <none>   32s   v1.19.1
-my-cluster-worker3         Ready    <none>   32s   v1.19.1
+NAME                       STATUS   ROLES                  AGE   VERSION
+my-cluster-control-plane   Ready    control-plane,master   36s   v1.21.1
+my-cluster-worker          Ready    <none>                 15s   v1.21.1
+my-cluster-worker2         Ready    <none>                 15s   v1.21.1
+my-cluster-worker3         Ready    <none>                 15s   v1.21.1
 
 $ kubectl get ns
 NAME                 STATUS   AGE
