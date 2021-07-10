@@ -25,12 +25,12 @@ But as of now, below are what I've tried and considered "great".
 
 | Ranking | Approach | Docs |
 | :-----: | -------- | -------- |
-| 1       | k3s + k3d | [Here in README-K3D-K3S.md](README-K3D-K3S.md) |
-| 2       | Kubernetes in Docker, aka [kind](https://github.com/kubernetes-sigs/kind) | [Here in README-KIND.md](README-KIND.md) |
-| 3       | Vagrant + VirtualBox | [Here in README-VAGRANT.md](README-VAGRANT.md) |
+| 1       | k3s + k3d | Refer to [README-K3D-K3S.md](README-K3D-K3S.md) |
+| 2       | Kubernetes in Docker, aka [kind](https://github.com/kubernetes-sigs/kind) | Refer to [README-KIND.md](README-KIND.md) |
+| 3       | Vagrant + VirtualBox | Refer to [README-VAGRANT.md](README-VAGRANT.md) |
 
 If you like the OKD/OpenShift approach, instead of the upstream K8s, you may try these:
-- OKD in Docker, [here in README-OKD-IN-DOCKER.md](README-OKD-IN-DOCKER.md)
+- OKD in Docker, efer to [README-OKD-IN-DOCKER.md](README-OKD-IN-DOCKER.md)
 - Or [MiniShift](https://www.okd.io/minishift/), which you can find tutorial everywhere.
 
 > Note: all the experiments were on Mac, but working in a Linux env should be very similar.
