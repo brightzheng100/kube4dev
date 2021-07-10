@@ -21,13 +21,13 @@ In short, the Kubernetes cluster provisioned:
 
 The potential ways might keep growing/evolving along the days.
 
-But as of now, below are what I've tried and considered "good".
+But as of now, below are what I've tried and considered "great".
 
 | Ranking | Approach | Docs |
 | :-----: | -------- | -------- |
-| 1       | Kubernetes in Docker, aka [kind](https://github.com/kubernetes-sigs/kind) | [Here in README-KIND.md](README-KIND.md) |
-| 2       | Vagrant + VirtualBox | [Here in README-VAGRANT.md](README-VAGRANT.md) |
-| 3       | K3s + K3d | COMMING SOON |
+| 1       | k3s + k3d | [Here in README-K3D-K3S.md](README-K3D-K3S.md) |
+| 2       | Kubernetes in Docker, aka [kind](https://github.com/kubernetes-sigs/kind) | [Here in README-KIND.md](README-KIND.md) |
+| 3       | Vagrant + VirtualBox | [Here in README-VAGRANT.md](README-VAGRANT.md) |
 
 If you like the OKD/OpenShift approach, instead of the upstream K8s, you may try these:
 - OKD in Docker, [here in README-OKD-IN-DOCKER.md](README-OKD-IN-DOCKER.md)

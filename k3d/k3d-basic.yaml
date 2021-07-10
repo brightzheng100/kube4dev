@@ -1,0 +1,5 @@
+apiVersion: k3d.io/v1alpha2
+kind: Simple
+name: k3s-cluster
+servers: 1
+agents: 3
