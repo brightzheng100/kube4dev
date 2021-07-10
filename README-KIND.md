@@ -8,7 +8,7 @@
 
 ## Provision Kubernetes Cluster
 
-The simple goal: to provision a Kubernetes cluster with **1 Master** + **3 Workers**
+The simple goal is to provision a Kubernetes cluster with **1 Master** + **3 Workers**
 
 ```sh
 # export the desired version
@@ -148,7 +148,7 @@ networking:
 
 > Note: do check out your desired CNI to learn what `podSubnet` might be preferred / required to set
 
-I already provide a [`kind-cofig-advanced.yaml`](kind/kind-cofig-advanced.yaml) which would help you provision a highly customized Kubernetes cluster with default CNI disabled.
+I already provide a [`kind-config-advanced.yaml`](kind/kind-config-advanced.yaml) which would help you provision a highly customized Kubernetes cluster with default CNI disabled.
 
 To provision such a cluster, do this:
 
