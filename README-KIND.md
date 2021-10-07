@@ -104,6 +104,7 @@ You may consider some scenarios like:
 - [Enable Loadbalancer support by MetalLB](#enable_loadbalancer_support_by_metallb)
 - [Enable non-GA features](#enable-non-ga-features)
 - [Spin up local Docker Registry](#spin-up-local-docker-registry) along with `kind create cluster`
+- [Integrate with Dex](#integrate-with-dex)
 - Maybe more
 
 ### Diving Into Nodes
