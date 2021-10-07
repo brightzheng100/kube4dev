@@ -501,6 +501,11 @@ Then you will have a `kind`-powered Kubernetes cluster, with:
   dnsPolicy: ClusterFirstWithHostNet
 ```
 
+### Integrate with Dex
+
+If you want to try integrate with OpenID Connect platform like [Dex](https://github.com/dexidp/dex), you may take a look at my blog titled [Kubernetes + Dex + LDAP Integration](https://brightzheng100.medium.com/kubernetes-dex-ldap-integration-f305292a16b9)
+
+
 ## Known Issues
 
 ### 1. The provision process won't work if PSP is enabled while bootstrapping
