@@ -420,7 +420,7 @@ $ curl -s http://127.0.0.1:$SVC_PORT | grep title
 
 Loadbalancer support is important in Kubernetes in some cases and [MetalLB](https://metallb.universe.tf/) can help.
 
-Unfortunately, `type: LoadBalancer` can't work well in `kind` in MacOS due to how Docker Desktop is built os MacOS.
+Unfortunately, `type: LoadBalancer` can't work well in `kind` in MacOS due to how Docker Desktop is built on MacOS.
 
 **So this approach can work in Linux only (not sure about Windows), for now.**
 
@@ -506,6 +506,47 @@ Then you will have a `kind`-powered Kubernetes cluster, with:
 
 If you want to try integrate with OpenID Connect platform like [Dex](https://github.com/dexidp/dex), you may take a look at my blog titled [Kubernetes + Dex + LDAP Integration](https://brightzheng100.medium.com/kubernetes-dex-ldap-integration-f305292a16b9)
 
+
+### Access `kind` Cluster from External
+
+There is such a case that we provision the `kind` in a VM while we're trying to access the `kind`-powered cluster from our laptop.
+
+For that, we need to _patch_ the config while provisioning the cluster by adding the VM's IP as part of the SAN:
+
+```sh
+# Export the IP of the VM
+$ export KIND_VM_IP=<the IP of the VM>
+
+$ cat > kind/kind-config.yaml <<EOF
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+kubeadmConfigPatches:
+- |
+  kind: ClusterConfiguration
+  metadata:
+    name: config
+  apiServer:
+    certSANs:
+    - localhost
+    - 127.0.0.1
+    - kubernetes
+    - kubernetes.default.svc
+    - kubernetes.default.svc.cluster.local
+    - kind
+    - ${KIND_VM_IP}
+nodes:
+- role: worker
+- role: worker
+- role: worker
+EOF
+
+$ kind create cluster --name my-cluster --config kind-config.yaml
+```
+
+Otherwise you'd hit TLS issue like:
+```
+Failed to list *v1.Secret: Get "https://192.168.1.148:6443/api/v1/secrets?limit=500&resourceVersion=0": x509: certificate is valid for 10.96.0.1, 172.18.0.3, 127.0.0.1, not 192.168.1.148
+```
 
 ## Known Issues
 
