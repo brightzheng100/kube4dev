@@ -143,7 +143,7 @@ root@my-cluster-control-plane:/# systemctl status kubelet.service
    ...
 ```
 
-> Note: 
+> Note:
 > 1. Frankly, after `docker exec` into the "node", you really can't differentiate whether you're in a real VM or a Docker container -- the components are exactly the same as what I have provisioned by using `kubeadm` on VMs;
 > 2. You may check out [this repo](https://github.com/brightzheng100/kubernetes-the-kubeadm-way) to see how to provision a **real and fully-fledged** `kubeadm`-based cluster on GCP.
 
@@ -228,37 +228,38 @@ As we've explored the way how to use `NodePort` to expose services to the extern
 
 So let's take `traefik` as an example:
 
-```
-$ kubectl apply -f https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-rbac.yaml
-$ kubectl apply -f https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-ds.yaml
-$ kubectl edit service/traefik-ingress-service -n kube-system
-```
+```Bash
+$ cat <<EOF > kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
 
-Make sure we update `traefik`'s service, like this:
+bases:
+  - https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-rbac.yaml
+  - https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-ds.yaml
 
-```sh
-$ kubectl apply -n kube-system -f - <<EOF
-kind: Service
-apiVersion: v1
-metadata:
-  name: traefik-ingress-service
-  namespace: kube-system
-spec:
-  type: NodePort          # <-- 1. change the default ClusterIp to NodePort
-  selector:
-    k8s-app: traefik-ingress-lb
-  ports:
-  - protocol: TCP
-    port: 80
-    nodePort: 30100       # <-- 2. add this nodePort binding to one of the node ports exposed
-    name: web
-  - protocol: TCP
-    port: 8080
-    nodePort: 30101       # <-- 3. add this nodePort binding to another one of the node ports exposed
-    name: admin
+patchesStrategicMerge:
+  - |-
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: traefik-ingress-service
+      namespace: kube-system
+    spec:
+      type: NodePort
+      selector:
+        k8s-app: traefik-ingress-lb
+      ports:
+        - protocol: TCP
+          port: 80
+          nodePort: 30100       # <-- 2. add this nodePort binding to one of the node ports exposed
+          name: web
+        - protocol: TCP
+          port: 8080
+          nodePort: 30101       # <-- 3. add this nodePort binding to another one of the node ports exposed
+          name: admin
 EOF
+$ kubectl apply -k .
 ```
-
 Test it out:
 
 ```sh
@@ -410,7 +411,7 @@ $ docker run -d --restart always \
     --network kind \
     alpine/socat -dd \
     tcp-listen:${SVC_PORT},fork,reuseaddr tcp-connect:target:${SVC_PORT}
-  
+
 # Now we can access it directly
 $ curl -s http://127.0.0.1:$SVC_PORT | grep title
 <title>Welcome to nginx!</title>
@@ -490,7 +491,7 @@ Then you will have a `kind`-powered Kubernetes cluster, with:
 - 3 x Worker Node
 - 1 x local Docker Registry, which is accessible from Kubernetes cluster, with prefix of `registry:5000/`. For example, `registry:5000/busybox`
 
-> Notes: 
+> Notes:
 1. You may customize the cluster creation script by exporting below variables to replace the default:
     - KIND_CLUSTER_NAME, defaults to "my-cluster"
     - KIND_CLUSTER_VERSION, defaults to "kindest/node:latest"
